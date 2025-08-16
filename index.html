@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game ID List</title>
+    <title>Game ID Directory</title>
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Source+Code+Pro:wght@500&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         /* --- Basic Setup & Theme --- */
         :root {
@@ -17,7 +20,9 @@
             --border-color: #444;
             --accent-color: #00aaff;
             --success-color: #28a745;
+            --disabled-color: #6c757d;
             --hover-glow: rgba(0, 170, 255, 0.3);
+            --card-shadow: rgba(0, 0, 0, 0.2);
         }
 
         * {
@@ -50,10 +55,16 @@
             font-weight: 600;
             margin-bottom: 0.5rem;
         }
+        
+        .search-wrapper {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
 
         #search-box {
             width: 100%;
-            padding: 12px 15px;
+            padding: 12px 15px 12px 40px; /* Add padding for icon */
             font-size: 1rem;
             border-radius: 8px;
             border: 2px solid var(--border-color);
@@ -68,6 +79,15 @@
             box-shadow: 0 0 10px var(--hover-glow);
         }
 
+        .search-wrapper .fa-search {
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            transform: translateY(-50%);
+            color: var(--secondary-text);
+        }
+
+
         /* --- Game List Grid --- */
         #game-list {
             display: grid;
@@ -75,74 +95,93 @@
             gap: 1.5rem;
             margin-top: 2rem;
         }
+        
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--secondary-text);
+            padding: 2rem;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+        }
 
         /* --- Game Card Styling --- */
         .game-card {
             background-color: var(--card-bg);
             border-radius: 12px;
-            padding: 1.5rem;
             border: 1px solid var(--border-color);
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s;
             display: flex;
             flex-direction: column;
+            overflow: hidden; /* To contain header background */
         }
 
         .game-card:hover {
             transform: translateY(-5px);
             border-color: var(--accent-color);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 8px 25px var(--card-shadow);
         }
         
-        .card-content {
-            flex-grow: 1;
-        }
-
         .card-header {
-            margin-bottom: 1rem;
+            padding: 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .game-title {
             font-size: 1.3rem;
             font-weight: 600;
+            margin-right: 1rem;
         }
         
-        .game-details {
-            font-size: 0.95rem;
-            color: var(--secondary-text);
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .status-dot.enabled { background-color: var(--success-color); }
+        .status-dot.disabled { background-color: var(--disabled-color); }
+        
+        .card-content {
+            padding: 1.25rem;
+            flex-grow: 1;
         }
 
         .detail-item {
             display: flex;
             align-items: center;
-            margin-top: 0.75rem;
+            margin-bottom: 0.75rem;
             font-family: 'Source Code Pro', monospace;
+            font-size: 0.95rem;
+            color: var(--secondary-text);
+        }
+        .detail-item:last-child { margin-bottom: 0; }
+        
+        .detail-item i {
+            color: var(--primary-text);
+            width: 25px;
+            text-align: center;
+            margin-right: 10px;
         }
         
         .detail-item strong {
             color: var(--primary-text);
-            min-width: 110px;
-        }
-        
-        .game-id {
-            color: var(--accent-color);
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        .game-id:hover {
-            color: #4dc3ff;
-            text-decoration: underline;
+            font-weight: 500;
         }
         
         .card-actions {
-            margin-top: 1.5rem;
+            margin-top: 1rem;
+            padding: 1rem 1.25rem;
             border-top: 1px solid var(--border-color);
-            padding-top: 1rem;
-            text-align: right;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
         }
         
-        .play-button {
-            background-color: var(--success-color);
-            color: #fff;
+        .action-button {
             border: none;
             padding: 8px 16px;
             font-family: 'Poppins', sans-serif;
@@ -150,12 +189,34 @@
             font-weight: 500;
             border-radius: 6px;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.2s;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .copy-button {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--secondary-text);
+        }
+        .copy-button:hover {
+            background-color: var(--border-color);
+            color: var(--primary-text);
         }
 
-        .play-button:hover {
+        .play-button {
+            background-color: var(--success-color);
+            color: #fff;
+        }
+        .play-button:hover:not(:disabled) {
             background-color: #218838;
             transform: scale(1.05);
+        }
+        .play-button:disabled {
+            background-color: var(--disabled-color);
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         /* --- Modal (Pop-up) Styling --- */
@@ -192,52 +253,31 @@
             transition: transform 0.3s ease;
         }
         
-        .modal-container.visible .modal-content {
-            transform: scale(1);
-        }
-
-        .modal-content h2 {
-            margin-bottom: 1rem;
-            color: var(--primary-text);
-        }
-
-        .modal-content p {
-            margin-bottom: 1.5rem;
-            color: var(--secondary-text);
-            line-height: 1.7;
-        }
-
+        .modal-container.visible .modal-content { transform: scale(1); }
+        .modal-content h2 { margin-bottom: 1rem; color: var(--primary-text); }
+        .modal-content p { margin-bottom: 1.5rem; color: var(--secondary-text); }
         .modal-button {
             display: inline-block;
             background-color: var(--accent-color);
-            color: #fff;
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 600;
+            color: #fff; text-decoration: none; padding: 12px 24px;
+            border-radius: 8px; font-weight: 600;
             transition: background-color 0.2s, transform 0.2s;
         }
-        
-        .modal-button:hover {
-            background-color: #0088cc;
-            transform: translateY(-2px);
-        }
+        .modal-button:hover { background-color: #0088cc; transform: translateY(-2px); }
         
         /* --- Footer --- */
-        footer {
-            text-align: center;
-            margin-top: 3rem;
-            color: var(--secondary-text);
-            font-size: 0.9rem;
-        }
+        footer { text-align: center; margin-top: 3rem; color: var(--secondary-text); font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <header>
-            <h1>Game ID List</h1>
-            <input type="text" id="search-box" placeholder="Search by ID, Name, or Engine Version...">
+            <h1>Game ID Directory</h1>
+            <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-box" placeholder="Search by ID, Name, or Engine Version...">
+            </div>
         </header>
 
         <main>
@@ -247,14 +287,14 @@
         </main>
         
         <footer>
-            <p>Click on a Game ID to copy it.</p>
+            <p>A modern interface for browsing Blockman GO game IDs.</p>
         </footer>
     </div>
     
     <!-- Pop-up Modal HTML Structure -->
     <div id="popup-modal" class="modal-container">
         <div class="modal-content">
-            <h2>Launch Game?</h2>
+            <h2 id="modal-title">Launch Game?</h2>
             <p>Want to launch Blockman GO games? Then try out BGPS Launcher!</p>
             <a href="https://itzst6v6.github.io/bgps" target="_blank" rel="noopener noreferrer" class="modal-button">Try It Out</a>
         </div>
@@ -262,183 +302,183 @@
 
 
     <script>
-        // Raw data provided by the user
-        const rawData = `
-GameType	GroupDirectory	Name	Enable	MapName	ServerIP	ServerPort	EngineVersion	Remark
-g1000		Sample	0	maps/sample	seen-shut.gl.at.ply.gg	22444	90900	模板游戏
-g1001	g1001_g1030	HungryGame	0	maps/g1001/m1001_1	seen-shut.gl.at.ply.gg	22444	90900	饥饿游戏
-g1002	g1001_g1030	SkyWar	0	maps/g1002/m1002_1	seen-shut.gl.at.ply.gg	22444	90900	空岛战争
-g1003	g1001_g1030	TeamHungryGame	0	maps/g1003/m301	seen-shut.gl.at.ply.gg	22444	90900	饥饿游戏（组队）
-g1007	g1001_g1030	BowSpleef	0	maps/g1007/m701	seen-shut.gl.at.ply.gg	22444	90900	掘一死战
-g1008	g1001_g1030	BedWar	0	maps/g1008/m1008_2	seen-shut.gl.at.ply.gg	22444	90007	起床战争
-g1009	g1001_g1030	MurderMystery	0	maps/g1009/m901	seen-shut.gl.at.ply.gg	22444	90900	神秘杀手
-g1010	g1001_g1030	TNTRun	0	maps/g1010/m1001	seen-shut.gl.at.ply.gg	22444	90900	TNT跑酷
-g1011	g1001_g1030	SnowballBattle	0	maps/g1011/m1101	seen-shut.gl.at.ply.gg	22444	90900	雪球大作战
-g1012	g1001_g1030	SnowBattle	0	maps/g1012/m1201_1	seen-shut.gl.at.ply.gg	22444	90900	雪球百人斩
-g1013	g1001_g1030	ZombieInfecting	0	maps/g1013/m1301	seen-shut.gl.at.ply.gg	22444	90900	生化危机
-g1014	g1001_g1030	JailBreak	0	maps/g1014/m1401	seen-shut.gl.at.ply.gg	22444	90900	警匪大战
-g1015	g1001_g1030	SandDigger	0	maps/g1015/m1501_1	seen-shut.gl.at.ply.gg	22444	90900	夺宝奇兵
-g1016	g1001_g1030	Chicken	0	maps/g1016/m1601	seen-shut.gl.at.ply.gg	22444	90900	刺激战场
-g1017	g1001_g1030	HideAndSeek	0	maps/g1017/m1701	seen-shut.gl.at.ply.gg	22444	90900	躲猫猫
-g1018	g1001_g1030	EggWar	1	maps/g1018/m1018_1	seen-shut.gl.at.ply.gg	22444	90900	龙蛋战争
-g1019	g1001_g1030	CreepyAliens	0	maps/g1019/m1019_1	seen-shut.gl.at.ply.gg	22444	90900	异星入侵
-g1020	g1001_g1030	TinyTown	0	maps/g1020/m1020_1	seen-shut.gl.at.ply.gg	22444	90900	迷你小镇
-g1021	g1001_g1030	Parkour	0	maps/g1021/m1021_1	seen-shut.gl.at.ply.gg	22444	90900	彩虹跑酷
-g1022	g1001_g1030	FlagWar	0	maps/g1022/m1022_1	seen-shut.gl.at.ply.gg	22444	90900	夺旗大战
-g1023	g1001_g1030	BuildBattle	0	maps/g1023/m1023_1	seen-shut.gl.at.ply.gg	22444	90900	建造战争
-g1024	g1001_g1030	JewelKnight	0	maps/g1024/m1024_1	seen-shut.gl.at.ply.gg	22444	90900	宝石骑士
-g1025	g1001_g1030	Tycoon	0	maps/g1025/m1025_1	seen-shut.gl.at.ply.gg	22444	90900	我的大亨
-g1026	g1001_g1030	ThrowPot	0	maps/g1026/m1026_1	seen-shut.gl.at.ply.gg	22444	90900	丢锅大战
-g1027	g1001_g1030	SkyRoyale	0	maps/g1027/m1027_1	seen-shut.gl.at.ply.gg	22444	90900	空岛乱斗
-g1028	g1001_g1030	Budokai	0	maps/g1028/m1028_2	seen-shut.gl.at.ply.gg	22444	90900	比武大会
-g1029	g1001_g1030	SuperWall	0	maps/g1029/m1029_1	seen-shut.gl.at.ply.gg	22444	90900	超级战墙
-g1030	g1001_g1030	SnowmanBattle	0	maps/g1030/m1030_1	seen-shut.gl.at.ply.gg	22444	90900	保卫雪人
-g1031	g1031_g1060	Ranchers	0	maps/g1031/m1031_1	seen-shut.gl.at.ply.gg	22444	90900	大农场主
-g1032	g1031_g1060	GunBattleHall	0	maps/g1032/m1032_1	seen-shut.gl.at.ply.gg	22444	90900	枪战大厅
-g1033	g1031_g1060	GBStrike	0	maps/g1033/m1033_2	seen-shut.gl.at.ply.gg	22444	90900	Strike枪战
-g1036	g1031_g1060	WatchCar	0	maps/g1036/m1036_1	seen-shut.gl.at.ply.gg	22444	90900	守望推车
-g1037	g1031_g1060	HASHall	0	maps/g1037/m1037_1	seen-shut.gl.at.ply.gg	22444	90900	躲猫猫大厅
-g1038	g1031_g1060	HASHidden	0	maps/g1038/m1038_1	seen-shut.gl.at.ply.gg	22444	90900	躲猫猫躲藏模式
-g1039	g1031_g1060	HASChase	0	maps/g1039/m1039_1	seen-shut.gl.at.ply.gg	22444	90900	躲猫猫追逐模式
-g1041	g1031_g1060	BirdSimulator	0	maps/g1041/m1041_2	seen-shut.gl.at.ply.gg	22444	90900	小鸟模拟器
-g1042	g1031_g1060	PixelGunHall	0	maps/g1042/m1042_1	seen-shut.gl.at.ply.gg	22444	90900	像素射击大厅
-g1043	g1031_g1060	PixelGunGame	0	maps/g1043/m1043_1	seen-shut.gl.at.ply.gg	22444	90900	像素射击团队
-g1044	g1031_g1060	PixelGunGame	0	maps/g1044/m1044_1	seen-shut.gl.at.ply.gg	22444	90900	像素射击个人
-g1045	g1031_g1060	PixelGunGame	0	maps/g1045/m1045_1	seen-shut.gl.at.ply.gg	22444	90900	像素射击单挑
-g1046	g1001_g1030	BedWar	0	maps/g1046/m1046_2	seen-shut.gl.at.ply.gg	22444	90900	起床大厅
-g1047	g1031_g1060	BlockCity	0	maps/g1047/m1047_1	seen-shut.gl.at.ply.gg	22444	90900	家园
-g1048	g1031_g1060	SkyBlock	0	maps/g1048/m1048_1	seen-shut.gl.at.ply.gg	22444	90900	空岛生存主岛
-g1049	g1031_g1060	SkyBlockMiningArea	0	maps/g1049/m1049_2	seen-shut.gl.at.ply.gg	22444	90900	空岛生存矿洞
-g1050	g1031_g1060	SkyBlockProduct	0	maps/g1050/m1050_1	seen-shut.gl.at.ply.gg	22444	90900	空岛生存自动化坑
-g1051	g1031_g1060	WalkingDead	0	maps/g1051/m1051_1	seen-shut.gl.at.ply.gg	22444	90900	行尸走肉
-g1052	g1031_g1060	BlockFort	0	maps/g1052/m1052_2	seen-shut.gl.at.ply.gg	22444	90900	方块堡垒
-g1053	g1031_g1060	PixelGunGame	0	maps/g1053/m1053_1	seen-shut.gl.at.ply.gg	22444	90900	像素射击吃鸡
-g1054	g1031_g1060	SkyWarLuckyBlock	0	maps/g1054/m1054_1	seen-shut.gl.at.ply.gg	22444	90900	幸运方块(空岛)
-g1055	g1031_g1060	LiftingSimulator	0	maps/g1055/m1055_1	seen-shut.gl.at.ply.gg	22444	90900	健身模拟器
-g1056	g1031_g1060	TowerDefense	0	maps/g1056/m1056_1	seen-shut.gl.at.ply.gg	19131	90900	塔防
-g1057	g1031_g1060	TowerDefenseHall	0	maps/g1057/m1057_1	seen-shut.gl.at.ply.gg	22444	90900	塔防大厅
-g1058	g1031_g1060	SkyWarLuckyBlockHall	0	maps/g1058/m1058_1	seen-shut.gl.at.ply.gg	22444	90900	幸运方块(空岛)大厅
-g1060	g1031_g1060	LSChampionShip	0	maps/g1060/m1060_1	seen-shut.gl.at.ply.gg	22444	90900	健身模拟器锦标赛
-g1061	g1001_g1030	BedWar	0	maps/g1061/m1061_1	seen-shut.gl.at.ply.gg	22444	90900	起床solo
-g1062	g1001_g1030	BedWar	0	maps/g1062/m1062_1	seen-shut.gl.at.ply.gg	22444	90900	起床双人
-g3042	g1031_g1060	PixelGunHall	0	maps/g3042/	seen-shut.gl.at.ply.gg	22444	90900	我爱冲锋大厅
-g3043	g1031_g1060	PixelGunGame	0	maps/g3043/	seen-shut.gl.at.ply.gg	22444	90900	我爱冲锋团队
-g3044	g1031_g1060	PixelGunGame	0	maps/g3044/	seen-shut.gl.at.ply.gg	22444	90900	我爱冲锋个人
-g3045	g1031_g1060	PixelGunGame	0	maps/g3045/	seen-shut.gl.at.ply.gg	22444	90900	我爱冲锋单挑
-g9999		GameTool	0	maps/template	seen-shut.gl.at.ply.gg	22444	90900	模板游戏
-g9998		Template	0	maps/template	seen-shut.gl.at.ply.gg	22444	90900	模板游戏
-        `;
-
-        // Make functions globally available for inline onclick attributes
-        let showPopup, hidePopup;
-
         document.addEventListener('DOMContentLoaded', () => {
+
+            // NEW: Data is now a structured JavaScript array, making it much cleaner.
+            const games = [
+                { id: 'g1000', codeName: 'Sample', name: 'Sample', enabled: false, engineVersion: '90900' },
+                { id: 'g1001', codeName: 'HungryGame', name: 'Hunger Games', enabled: false, engineVersion: '90900' },
+                { id: 'g1002', codeName: 'SkyWar', name: 'SkyWars', enabled: false, engineVersion: '90900' },
+                { id: 'g1003', codeName: 'TeamHungryGame', name: 'Team Hunger Games', enabled: false, engineVersion: '90900' },
+                { id: 'g1007', codeName: 'BowSpleef', name: 'Bow Spleef', enabled: false, engineVersion: '90900' },
+                { id: 'g1008', codeName: 'BedWar', name: 'Bed Wars', enabled: false, engineVersion: '90007' },
+                { id: 'g1009', codeName: 'MurderMystery', name: 'Murder Mystery', enabled: false, engineVersion: '90900' },
+                { id: 'g1010', codeName: 'TNTRun', name: 'TNT Run', enabled: false, engineVersion: '90900' },
+                { id: 'g1011', codeName: 'SnowballBattle', name: 'Snowball Battle', enabled: false, engineVersion: '90900' },
+                { id: 'g1012', codeName: 'SnowBattle', name: 'Snow Battle', enabled: false, engineVersion: '90900' },
+                { id: 'g1013', codeName: 'ZombieInfecting', name: 'Zombie Infecting', enabled: false, engineVersion: '90900' },
+                { id: 'g1014', codeName: 'JailBreak', name: 'Jail Break', enabled: false, engineVersion: '90900' },
+                { id: 'g1015', codeName: 'SandDigger', name: 'Treasure Hunter', enabled: false, engineVersion: '90900' },
+                { id: 'g1016', codeName: 'Chicken', name: 'Stimulate the battlefield', enabled: false, engineVersion: '90900' },
+                { id: 'g1017', codeName: 'HideAndSeek', name: 'Hide and Seek', enabled: false, engineVersion: '90900' },
+                { id: 'g1018', codeName: 'EggWar', name: 'Egg Wars', enabled: true, engineVersion: '90900' },
+                { id: 'g1019', codeName: 'CreepyAliens', name: 'Alien Invasion', enabled: false, engineVersion: '90900' },
+                { id: 'g1020', codeName: 'TinyTown', name: 'Tiny Town', enabled: false, engineVersion: '90900' },
+                { id: 'g1021', codeName: 'Parkour', name: 'Rainbow Parkour', enabled: false, engineVersion: '90900' },
+                { id: 'g1022', codeName: 'FlagWar', name: 'Capture the Flag', enabled: false, engineVersion: '90900' },
+                { id: 'g1023', codeName: 'BuildBattle', name: 'Build Battle', enabled: false, engineVersion: '90900' },
+                { id: 'g1024', codeName: 'JewelKnight', name: 'Jewel Knight', enabled: false, engineVersion: '90900' },
+                { id: 'g1025', codeName: 'Tycoon', name: 'My Tycoon (Hero Tycoon 2)', enabled: false, engineVersion: '90900' },
+                { id: 'g1026', codeName: 'ThrowPot', name: 'Throwing Pot Battle', enabled: false, engineVersion: '90900' },
+                { id: 'g1027', codeName: 'SkyRoyale', name: 'Sky Royale', enabled: false, engineVersion: '90900' },
+                { id: 'g1028', codeName: 'Budokai', name: 'Martial Arts Tournament', enabled: false, engineVersion: '90900' },
+                { id: 'g1029', codeName: 'SuperWall', name: 'Super Wall', enabled: false, engineVersion: '90900' },
+                { id: 'g1030', codeName: 'SnowmanBattle', name: 'Defend the Snowman', enabled: false, engineVersion: '90900' },
+                { id: 'g1031', codeName: 'Ranchers', name: 'Ranchers', enabled: false, engineVersion: '90900' },
+                { id: 'g1032', codeName: 'GunBattleHall', name: 'Gun Battle Hall', enabled: false, engineVersion: '90900' },
+                { id: 'g1033', codeName: 'GBStrike', name: 'Strike Gun Battle', enabled: false, engineVersion: '90900' },
+                { id: 'g1036', codeName: 'WatchCar', name: 'Escort the Cart', enabled: false, engineVersion: '90900' },
+                { id: 'g1037', codeName: 'HASHall', name: 'Hide and Seek Hall', enabled: false, engineVersion: '90900' },
+                { id: 'g1038', codeName: 'HASHidden', name: 'Hide and Seek (Hiding Mode)', enabled: false, engineVersion: '90900' },
+                { id: 'g1039', codeName: 'HASChase', name: 'Hide and Seek (Chasing Mode)', enabled: false, engineVersion: '90900' },
+                { id: 'g1041', codeName: 'BirdSimulator', name: 'Bird Simulator', enabled: false, engineVersion: '90900' },
+                { id: 'g1042', codeName: 'PixelGunHall', name: 'Pixel Gun Hall', enabled: false, engineVersion: '90900' },
+                { id: 'g1043', codeName: 'PixelGunGame', name: 'Pixel Gun (Team)', enabled: false, engineVersion: '90900' },
+                { id: 'g1044', codeName: 'PixelGunGame', name: 'Pixel Gun (Solo)', enabled: false, engineVersion: '90900' },
+                { id: 'g1045', codeName: 'PixelGunGame', name: 'Pixel Gun (1v1)', enabled: false, engineVersion: '90900' },
+                { id: 'g1046', codeName: 'BedWar', name: 'Bed Wars Hall', enabled: false, engineVersion: '90900' },
+                { id: 'g1047', codeName: 'BlockCity', name: 'Block City', enabled: false, engineVersion: '90900' },
+                { id: 'g1048', codeName: 'SkyBlock', name: 'SkyBlock (Main Island)', enabled: false, engineVersion: '90900' },
+                { id: 'g1049', codeName: 'SkyBlockMiningArea', name: 'SkyBlock (Mining Area)', enabled: false, engineVersion: '90900' },
+                { id: 'g1050', codeName: 'SkyBlockProduct', name: 'SkyBlock (Automation)', enabled: false, engineVersion: '90900' },
+                { id: 'g1051', codeName: 'WalkingDead', name: 'Walking Dead', enabled: false, engineVersion: '90900' },
+                { id: 'g1052', codeName: 'BlockFort', name: 'Block Fortress', enabled: false, engineVersion: '90900' },
+                { id: 'g1053', codeName: 'PixelGunGame', name: 'Pixel Gun (Battle Royale)', enabled: false, engineVersion: '90900' },
+                { id: 'g1054', codeName: 'SkyWarLuckyBlock', name: 'Lucky Block SkyWars', enabled: false, engineVersion: '90900' },
+                { id: 'g1055', codeName: 'LiftingSimulator', name: 'Lifting Simulator', enabled: false, engineVersion: '90900' },
+                { id: 'g1056', codeName: 'TowerDefense', name: 'Tower Defense', enabled: false, engineVersion: '90900' },
+                { id: 'g1057', codeName: 'TowerDefenseHall', name: 'Tower Defense Hall', enabled: false, engineVersion: '90900' },
+                { id: 'g1058', codeName: 'SkyWarLuckyBlockHall', name: 'Lucky Block SkyWars Hall', enabled: false, engineVersion: '90900' },
+                { id: 'g1060', codeName: 'LSChampionShip', name: 'Lifting Simulator Championship', enabled: false, engineVersion: '90900' },
+                { id: 'g1061', codeName: 'BedWar', name: 'Bed Wars (Solo)', enabled: false, engineVersion: '90900' },
+                { id: 'g1062', codeName: 'BedWar', name: 'Bed Wars (Doubles)', enabled: false, engineVersion: '90900' },
+                { id: 'g3042', codeName: 'PixelGunHall', name: 'Shooter Game Hall', enabled: false, engineVersion: '90900' },
+                { id: 'g3043', codeName: 'PixelGunGame', name: 'Shooter Game (Team)', enabled: false, engineVersion: '90900' },
+                { id: 'g3044', codeName: 'PixelGunGame', name: 'Shooter Game (Solo)', enabled: false, engineVersion: '90900' },
+                { id: 'g3045', codeName: 'PixelGunGame', name: 'Shooter Game (1v1)', enabled: false, engineVersion: '90900' },
+                { id: 'g9999', codeName: 'GameTool', name: 'Template Game', enabled: false, engineVersion: '90900' },
+                { id: 'g9998', codeName: 'Template', name: 'Template', enabled: false, engineVersion: '90900' },
+            ];
+
             const gameListContainer = document.getElementById('game-list');
             const searchBox = document.getElementById('search-box');
             const modal = document.getElementById('popup-modal');
-            let gamesData = [];
 
-            // --- Modal Logic ---
-            showPopup = () => {
-                modal.classList.add('visible');
+            const renderGameList = (gamesToRender) => {
+                gameListContainer.innerHTML = ''; // Clear previous list
+                if (gamesToRender.length === 0) {
+                    gameListContainer.innerHTML = '<p class="no-results">No games found matching your search.</p>';
+                    return;
+                }
+
+                const gameCardsHTML = gamesToRender.map(game => `
+                    <div class="game-card" data-id="${game.id}">
+                        <div class="card-header">
+                            <h3 class="game-title">${game.name}</h3>
+                            <span class="status-dot ${game.enabled ? 'enabled' : 'disabled'}" title="${game.enabled ? 'Enabled' : 'Disabled'}"></span>
+                        </div>
+                        <div class="card-content">
+                            <div class="detail-item">
+                                <i class="fas fa-hashtag"></i>
+                                <strong>${game.id}</strong>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-microchip"></i>
+                                <span>Engine: ${game.engineVersion}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-code"></i>
+                                <span>Name: ${game.codeName}</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="action-button copy-button">
+                                <i class="fas fa-copy"></i>
+                                <span>Copy ID</span>
+                            </button>
+                            <button class="action-button play-button" ${!game.enabled ? 'disabled' : ''}>
+                                <i class="fas fa-play"></i>
+                                <span>Play</span>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+                gameListContainer.innerHTML = gameCardsHTML;
             };
 
-            hidePopup = () => {
-                modal.classList.remove('visible');
+            const filterGames = () => {
+                const query = searchBox.value.toLowerCase().trim();
+                const filteredGames = games.filter(game =>
+                    game.id.toLowerCase().includes(query) ||
+                    game.name.toLowerCase().includes(query) ||
+                    game.codeName.toLowerCase().includes(query) ||
+                    game.engineVersion.toLowerCase().includes(query)
+                );
+                renderGameList(filteredGames);
             };
 
-            // Hide modal if the container (overlay) is clicked
+            // --- Event Handling using Delegation ---
+            gameListContainer.addEventListener('click', (e) => {
+                const copyButton = e.target.closest('.copy-button');
+                const playButton = e.target.closest('.play-button');
+
+                if (copyButton) {
+                    const card = e.target.closest('.game-card');
+                    const gameId = card.dataset.id;
+                    copyToClipboard(gameId, copyButton);
+                }
+
+                if (playButton && !playButton.disabled) {
+                    showPopup();
+                }
+            });
+
+            const showPopup = () => modal.classList.add('visible');
+            const hidePopup = () => modal.classList.remove('visible');
+            
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
+                if (e.target === modal) { // Hide if overlay is clicked
                     hidePopup();
                 }
             });
 
-            // --- Data Parsing and Rendering ---
-            function parseData() {
-                const lines = rawData.trim().split('\n').slice(2);
-                gamesData = lines.map(line => {
-                    const columns = line.trim().split(/\s+/);
-                    if (columns.length < 9) return null;
+            const copyToClipboard = (text, buttonElement) => {
+                navigator.clipboard.writeText(text).then(() => {
+                    const icon = buttonElement.querySelector('i');
+                    const textSpan = buttonElement.querySelector('span');
+                    
+                    const originalIconClass = icon.className;
+                    const originalText = textSpan.textContent;
 
-                    const gameType = columns[0];
-                    const name = columns[2];
-                    const engineVersion = columns[7];
-                    const remark = columns.slice(8).join(' ');
+                    icon.className = 'fas fa-check';
+                    textSpan.textContent = 'Copied!';
+                    buttonElement.style.color = 'var(--success-color)';
 
-                    return { gameType, name, engineVersion, remark };
-                }).filter(game => game && game.gameType && game.remark);
-            }
-
-            function renderGameList(games) {
-                gameListContainer.innerHTML = '';
-                if (games.length === 0) {
-                    gameListContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">No games found.</p>';
-                    return;
-                }
-
-                games.forEach(game => {
-                    const card = document.createElement('div');
-                    card.className = 'game-card';
-                    card.innerHTML = `
-                        <div class="card-content">
-                            <div class="card-header">
-                                <h3 class="game-title">${game.remark}</h3>
-                            </div>
-                            <div class="game-details">
-                                <div class="detail-item">
-                                    <strong>Game ID:</strong>
-                                    <span class="game-id" onclick="copyToClipboard('${game.gameType}', this)">${game.gameType}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Engine Ver:</strong>
-                                    <span>${game.engineVersion}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Game Name:</strong>
-                                    <span>${game.name}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-actions">
-                            <button class="play-button" onclick="showPopup()">Play</button>
-                        </div>
-                    `;
-                    gameListContainer.appendChild(card);
+                    setTimeout(() => {
+                        icon.className = originalIconClass;
+                        textSpan.textContent = originalText;
+                        buttonElement.style.color = '';
+                    }, 1500);
+                }).catch(err => {
+                    console.error('Failed to copy ID: ', err);
                 });
-            }
-
-            function filterGames() {
-                const query = searchBox.value.toLowerCase().trim();
-                const filteredGames = gamesData.filter(game =>
-                    game.gameType.toLowerCase().includes(query) ||
-                    game.remark.toLowerCase().includes(query) ||
-                    game.name.toLowerCase().includes(query) ||
-                    game.engineVersion.toLowerCase().includes(query)
-                );
-                renderGameList(filteredGames);
-            }
+            };
 
             // Initial setup
-            parseData();
-            renderGameList(gamesData);
+            renderGameList(games);
             searchBox.addEventListener('input', filterGames);
         });
-        
-        // --- Utility Functions ---
-        function copyToClipboard(text, element) {
-            navigator.clipboard.writeText(text).then(() => {
-                const originalText = element.textContent;
-                element.textContent = 'Copied!';
-                element.style.color = 'var(--success-color)';
-                setTimeout(() => {
-                    element.textContent = originalText;
-                    element.style.color = '';
-                }, 1500);
-            }).catch(err => {
-                console.error('Failed to copy: ', err);
-            });
-        }
     </script>
 
 </body>
